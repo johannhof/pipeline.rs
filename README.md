@@ -22,14 +22,14 @@ let num = pipe!(
 ## Usage
 
 Put this in your Cargo.toml
-```
+```toml
 [dependencies]
 
 pipeline = "0.4.0"
 ```
 
 Then you can import the macros with extern crate and macro_use
-```
+```rust
 #[macro_use]
 extern crate pipeline;
 ```

@@ -1,4 +1,4 @@
-# pipeline.rs
+# pipeline.rs [![](https://travis-ci.org/johannhof/pipeline.rs.svg)](https://travis-ci.org/johannhof/pipeline.rs)
 
 Pipeline is a macro collection to pipe your functions calls, like in F# or Elixir.
 

@@ -1,4 +1,4 @@
-# pipeline.rs [![](https://travis-ci.org/johannhof/pipeline.rs.svg)](https://travis-ci.org/johannhof/pipeline.rs)
+# pipeline.rs [![](https://travis-ci.org/johannhof/pipeline.rs.svg)](https://travis-ci.org/johannhof/pipeline.rs) [![](https://img.shields.io/crates/v/pipeline.svg)](https://crates.io/crates/pipeline)
 
 Pipeline is a macro collection to pipe your functions calls, like in F# or Elixir. Instead of the nice `|>` operator it uses `=>` as a pipe character, due to limitations in the Rust macro system. 
 

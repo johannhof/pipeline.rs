@@ -1,4 +1,4 @@
 [package]
-name = "pipe_macros"
-version = "0.1.0"
+name = "pipeline"
+version = "1.0.0"
 authors = ["Johann <git@johann-hofmann.com>"]

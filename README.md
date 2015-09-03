@@ -1,20 +1,21 @@
 # pipeline.rs
 
-Pipeline is a macro to pipe your functions calls, like in F# or Elixir.
+Pipeline is a macro collection to pipe your functions calls, like in F# or Elixir.
 
-```
-let body = pipe!("http://rust-lang.org" => download => parse => [unwrap])
+```rust
+// pipe_res exits the pipeline early if a function returns an Err()
+let result = pipe_res!("http://rust-lang.org" => download => parse => get_links)
 ```
 
-```
-    fn times(a: u32, b: u32) -> u32{
-        return a * b * c;
-    }
+```rust
+fn times(a: u32, b: u32) -> u32{
+    return a * b;
+}
 
-    let num = pipe!(
-      4
-      => (times(10))
-      => (times(4))
-    )
+let num = pipe!(
+  4
+  => (times(10))
+  => (times(4))
+)
 ```
 

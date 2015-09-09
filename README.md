@@ -2,6 +2,21 @@
 
 Pipeline is a macro collection to pipe your functions calls, like in F# or Elixir. Instead of the nice `|>` operator it uses `=>` as a pipe character, due to limitations in the Rust macro system. 
 
+## Usage
+
+Put this in your Cargo.toml
+```toml
+[dependencies]
+
+pipeline = "0.4.1"
+```
+
+Then you can import the macros with extern crate and macro_use
+```rust
+#[macro_use]
+extern crate pipeline;
+```
+
 ## Examples
 
 ```rust
@@ -19,7 +34,7 @@ let num = pipe!(
   => (times(10))
   => {|i: u32| i * 2}
   => (times(4))
-)
+);
 
 // takes a string length, doubles it and converts it back into a string
 let length = pipe!(
@@ -31,26 +46,11 @@ let length = pipe!(
 );
 ```
 
-## Usage
-
-Put this in your Cargo.toml
-```toml
-[dependencies]
-
-pipeline = "0.4.0"
-```
-
-Then you can import the macros with extern crate and macro_use
-```rust
-#[macro_use]
-extern crate pipeline;
-```
-
 ## Syntax Features
 
 Any `pipe` starts with an expression as initial value and requires you
 to specify a function to transform that initial value.
-```
+```rust
 let result = pipe!(2 => times2);
 ```
 
@@ -62,12 +62,12 @@ function after the transformed value.
 because the Rust macro system can be very restrictive.
 If you figure out a way to do it without please make a PR.
 
-```
+```rust
 let result = pipe!(2 => (times(2)));
 ```
 
 You can pass closures \o/! A closure must be wrapped in curly brackets (`{}`)
-```
+```rust
 let result = pipe!(
   2
   => (times(2))
@@ -77,7 +77,7 @@ let result = pipe!(
 
 If you want a function to be called as a method on the transform value,
 put it in square brackets (`[]`).
-```
+```rust
 let result = pipe!(
     "abcd"
     => [len]

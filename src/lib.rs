@@ -5,7 +5,8 @@
 #![deny(missing_docs)]
 #![deny(warnings)]
 
-macro_rules! fun {
+#[macro_export]
+macro_rules! pipe_fun {
     (&, $ret:expr) => {
         &$ret;
     };
@@ -32,7 +33,7 @@ macro_rules! pipe {
         {
             let ret = $expr;
             $(
-                let ret = fun!($funs, ret);
+                let ret = pipe_fun!($funs, ret);
             )*
             ret
         }
@@ -46,7 +47,7 @@ macro_rules! pipe_res {
             let ret = Ok($expr);
             $(
                 let ret = match ret {
-                    Ok(x) => fun!($funs, x),
+                    Ok(x) => pipe_fun!($funs, x),
                     _ => ret
                 };
             )*

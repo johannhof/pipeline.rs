@@ -46,6 +46,17 @@ let length = pipe!(
 );
 ```
 
+## Macros
+
+- `pipe!` is the "standard" pipe macro
+- `pipe_res!` works like `pipe!` but takes only functions that return a `Result` (of the
+  same type) and returns early if that result is an Err. Useful for combining multiple IO
+  transformations like opening a file, reading the contents and making an HTTP request.
+- `pipe_opt!` works like `pipe!` but takes only functions that return an `Option` (of the same type).
+  The pipeline will continue to operate on the initial value as long as `None` is returned from all functions.
+  If a function in the pipeline returns `Some`, the macro will exit early and return that value.
+  This can be useful if you want to try out several functions to see which can make use of that value in a specified order.
+
 ## Syntax Features
 
 Any `pipe` starts with an expression as initial value and requires you

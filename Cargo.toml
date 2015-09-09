@@ -1,6 +1,6 @@
 [package]
 name = "pipeline"
-version = "0.4.1"
+version = "0.5.0"
 authors = ["Johann Hofmann <mail@johann-hofmann.com>"]
 description = "A macro collection to pipe |> your functions calls, like in F# or Elixir."
 repository = "https://github.com/johannhof/pipeline.rs"

@@ -55,6 +55,95 @@ macro_rules! pipe_res {
         }
     };
 }
+
+#[macro_export]
+macro_rules! pipe_opt {
+    ( $expr:expr => $($funs:tt)=>+ ) => {
+        {
+            let ret = None;
+            $(
+                let ret = match ret {
+                    None => pipe_fun!($funs, $expr),
+                    _ => ret
+                };
+            )*
+            ret
+        }
+    };
+}
+
+#[cfg(test)]
+mod test_pipe_opt{
+    fn times2(a: u32) -> Option<u32>{
+        return Some(a * 2);
+    }
+
+    fn nope(_a: u32) -> Option<u32>{
+        return None;
+    }
+
+    #[test]
+    fn accepts_options() {
+        let ret = pipe_opt!(
+            4
+            => times2
+        );
+
+        assert_eq!(ret, Some(8));
+    }
+
+    #[test]
+    fn accepts_unwrap() {
+        let ret = pipe_opt!(
+            4
+            => times2
+        ).unwrap();
+
+        assert_eq!(ret, 8);
+    }
+
+
+    #[test]
+    fn exits_early() {
+        let ret = pipe_opt!(
+            4
+            => times2
+            => times2
+            => times2
+        );
+
+        assert_eq!(ret, Some(8));
+    }
+
+    #[test]
+    fn goes_until_some() {
+        let ret = pipe_opt!(
+            4
+            => nope
+            => nope
+            => {|_i: u32| None}
+            => times2
+            => nope
+        );
+
+        assert_eq!(ret, Some(8));
+    }
+
+    #[test]
+    fn ends_with_none() {
+        let ret = pipe_opt!(
+            4
+            => nope
+            => nope
+            => {|_i: u32| None}
+            => nope
+        );
+
+        assert_eq!(ret, None);
+    }
+}
+
+
 #[cfg(test)]
 mod test_pipe_res{
     fn times2(a: u32) -> Result<u32, String>{

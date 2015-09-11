@@ -8,7 +8,7 @@ Put this in your Cargo.toml
 ```toml
 [dependencies]
 
-pipeline = "0.4.1"
+pipeline = "0.5.0"
 ```
 
 Then you can import the macros with extern crate and macro_use

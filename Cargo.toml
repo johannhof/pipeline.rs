@@ -6,4 +6,4 @@ description = "A macro collection to pipe |> your functions calls, like in F# or
 repository = "https://github.com/johannhof/pipeline.rs"
 readme = "README.md"
 keywords = ["pipe", "function", "elixir", "macro", "composition"]
-license = "MIT"
+license = "MIT OR Apache-2.0"

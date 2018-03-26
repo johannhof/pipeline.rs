@@ -246,7 +246,7 @@ mod test_pipe{
         //let ret = times(ret, 100, 10);
         //let ret = ret.to_string();
 
-        assert_eq!(ret, times(times2(("abcd".len() as u32)), 100, 10).to_string());
+        assert_eq!(ret, times(times2("abcd".len() as u32), 100, 10).to_string());
         assert_eq!(ret, "8000");
     }
 }

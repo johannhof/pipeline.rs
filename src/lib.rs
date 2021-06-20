@@ -1,253 +1,103 @@
 //! # pipe_macros
 //! A small macro library that allows you to pipe functions
-//! similar to the pipe operator in Elixir and F# (|>)
-
+//! similar to the pipe operator in Elixir and F# (|>), but also
+//! with some special syntax sugar.
+//!
+//! # Syntax / Examples
+//!
+//! The first argument is a value, all following items are functions
+//! that process the output of the previous in order. They are separated
+//! by `=>` as operator
+//! ```
+//! # #![cfg_attr(feature = "nightly", feature(proc_macro_hygiene))]
+//! #
+//! # use pipeline::pipe;
+//! # let value = ();
+//! # let function1 = std::convert::identity;
+//! # let function2 = std::convert::identity;
+//! let foo = pipe![value => function1 => function2];
+//! /* This is equivalent: */
+//! let foo = function2(function1(value));
+//! ```
+//!
+//! All functions must take exactly one argument and will be called like
+//! `function(value)` on a syntactic level.
+//!
+//! Functions may of course be closures. Because all closures in a pipeline
+//! must of course take exactly one argument, there is some special syntax sugar.
+//! Simply use `_` as the input value and it'll automatically call it:
+//!
+//! ```
+//! # #![cfg_attr(feature = "nightly", feature(proc_macro_hygiene))]
+//! #
+//! # struct Foo;
+//! # impl Foo { fn function2(self) -> () {} }
+//! # use pipeline::pipe;
+//! # let value = ();
+//! # let function1 = |_| Foo;
+//! let foo = pipe![
+//!     value
+//!     => function1(_)
+//!     => _.function2()
+//! ];
+//! /* This is equivalent: */
+//! let foo = function1(value).function2();
+//! /* This is too, but not in general
+//!  * (ignore the type annotations, they're the reason we don't expand to this):
+//!  */
+//! let foo = (|it: Foo| it.function2()) ((|it| function1(it)) (value));
+//! ```
+//! 
+//! The `_` syntax sugar is a plain text macro expansion. This means usual
+//! control flow handling applies:
+//!
+//! ```
+//! # #![cfg_attr(feature = "nightly", feature(proc_macro_hygiene))]
+//! #
+//! # use pipeline::pipe;
+//! # let value = ();
+//! # let fallible_function = |_| std::result::Result::<(), ()>::Ok(());
+//! let foo = pipe![
+//!     value
+//!     => fallible_function(_)?
+//! ];
+//! # std::result::Result::<(), ()>::Ok(())
+//! ```
+//!
+//! # When to use
+//!
+//! This is indeed very cool and it is tempting to over-use it. In general,
+//! This crate shines in flattening deeply nested calls of the form `baz(bar(foo(val)))`.
+//! The strength of Rust syntax lies in postfix function chaining. You should strive
+//! to create APIs that are called like `val.foo().bar().baz()`.
+//!
+//! Strictly speaking this is not exactly what one would call "function composition" or
+//! "point free style" in functional programming languages. The reason for that is that
+//! an argument is always required; you can't (easily) chain methods together without also
+//! calling them right away.
 #![deny(missing_docs)]
 #![deny(warnings)]
 
-#[macro_export]
-macro_rules! pipe_fun {
-    (&, $ret:expr) => {
-        &$ret;
-    };
-    ((as $typ:ty), $ret:expr) => {
-        $ret as $typ;
-    };
-    ({$fun:expr}, $ret:expr) => {
-        $fun($ret);
-    };
-    ([$fun:ident], $ret:expr) => {
-        $ret.$fun();
-    };
-    (($fun:ident($($arg:expr),*)), $ret:expr) => {
-        $fun($ret $(,$arg)*);
-    };
-    ($fun:ident, $ret:expr) => {
-        $fun($ret);
-    }
-}
+/// Lambda macro
+#[cfg(not(feature = "nightly"))]
+use proc_macro_hack::proc_macro_hack;
 
-#[macro_export]
-macro_rules! pipe {
-    ( $expr:expr => $($funs:tt)=>+ ) => {
-        {
-            let ret = $expr;
-            $(
-                let ret = pipe_fun!($funs, ret);
-            )*
-            ret
-        }
-    };
-}
-
-#[macro_export]
-macro_rules! pipe_res {
-    ( $expr:expr => $($funs:tt)=>+ ) => {
-        {
-            let ret = Ok($expr);
-            $(
-                let ret = match ret {
-                    Ok(x) => pipe_fun!($funs, x),
-                    _ => ret
-                };
-            )*
-            ret
-        }
-    };
-}
-
-#[macro_export]
-macro_rules! pipe_opt {
-    ( $expr:expr => $($funs:tt)=>+ ) => {
-        {
-            let ret = None;
-            $(
-                let ret = match ret {
-                    None => pipe_fun!($funs, $expr),
-                    _ => ret
-                };
-            )*
-            ret
-        }
-    };
-}
-
-#[cfg(test)]
-mod test_pipe_opt{
-    fn times2(a: u32) -> Option<u32>{
-        return Some(a * 2);
-    }
-
-    fn nope(_a: u32) -> Option<u32>{
-        return None;
-    }
-
-    #[test]
-    fn accepts_options() {
-        let ret = pipe_opt!(
-            4
-            => times2
-        );
-
-        assert_eq!(ret, Some(8));
-    }
-
-    #[test]
-    fn accepts_unwrap() {
-        let ret = pipe_opt!(
-            4
-            => times2
-        ).unwrap();
-
-        assert_eq!(ret, 8);
-    }
-
-
-    #[test]
-    fn exits_early() {
-        let ret = pipe_opt!(
-            4
-            => times2
-            => times2
-            => times2
-        );
-
-        assert_eq!(ret, Some(8));
-    }
-
-    #[test]
-    fn goes_until_some() {
-        let ret = pipe_opt!(
-            4
-            => nope
-            => nope
-            => {|_i: u32| None}
-            => times2
-            => nope
-        );
-
-        assert_eq!(ret, Some(8));
-    }
-
-    #[test]
-    fn ends_with_none() {
-        let ret = pipe_opt!(
-            4
-            => nope
-            => nope
-            => {|_i: u32| None}
-            => nope
-        );
-
-        assert_eq!(ret, None);
-    }
-}
-
-
-#[cfg(test)]
-mod test_pipe_res{
-    fn times2(a: u32) -> Result<u32, String>{
-        return Ok(a * 2);
-    }
-
-    fn fail_if_over_4(a: u32) -> Result<u32, String>{
-        if a > 4 {
-            return Err("This number is larger than four".to_string());
-        }
-        return Ok(a);
-    }
-
-    #[test]
-    fn accepts_results() {
-        let ret = pipe_res!(
-            4
-            => times2
-        );
-
-        assert_eq!(ret, Ok(8));
-    }
-
-    #[test]
-    fn accepts_unwrap() {
-        let ret = pipe_res!(
-            4
-            => times2
-        ).unwrap();
-
-        assert_eq!(ret, 8);
-    }
-
-
-    #[test]
-    fn chains_result_values() {
-        let ret = pipe_res!(
-            4
-            => times2
-            => times2
-            => times2
-        );
-
-        assert_eq!(ret, Ok(32));
-    }
-
-    #[test]
-    fn exits_early() {
-        let ret = pipe_res!(
-            4
-            => times2
-            => fail_if_over_4
-            => times2
-            => times2
-        );
-
-        assert_eq!(ret, Err("This number is larger than four".to_string()));
-    }
-}
-
-#[cfg(test)]
-mod test_pipe{
-    fn times2(a: u32) -> u32{
-        return a * 2;
-    }
-
-    fn times(a: u32, b: u32, c: u32) -> u32{
-        return a * b * c;
-    }
-
-    #[test]
-    fn test_int() {
-        let multiply = |i: u32| i * 2;
-        let ret = pipe!(
-            4
-            => times2
-            => {|i: u32| i * 2}
-            => multiply
-            => (times(100, 10))
-        );
-
-        assert_eq!(ret, 32000);
-    }
-
-    #[test]
-    fn test_string() {
-        let ret = pipe!(
-            "abcd"
-            => [len]
-            => (as u32)
-            => times2
-            => (times(100, 10))
-            => [to_string]
-        );
-
-        //let ret = "abcd";
-        //let ret = ret.len();
-        //let ret = ret as u32;
-        //let ret = times2(ret);
-        //let ret = times(ret, 100, 10);
-        //let ret = ret.to_string();
-
-        assert_eq!(ret, times(times2("abcd".len() as u32), 100, 10).to_string());
-        assert_eq!(ret, "8000");
-    }
-}
-
+/// See the module level documentation
+///
+/// The code expands to something like:
+///
+/// ```ignore
+/// {
+///   let ret = value;
+///   let ret = function1(ret);
+///   let ret = ret.function2();
+///   ret
+/// }
+/// ```
+///
+/// Functions containing no `_` are simply called by appending `(ret);`
+/// Functions containing `_` are "called" by substituting `_` with `ret`.
+/// If you encounter any edge cases that use any of these two as symbols in
+/// a way that breaks the intended semantics, please open an issue.
+#[cfg_attr(not(feature = "nightly"), proc_macro_hack)]
+pub use pipeline_macro::pipe;

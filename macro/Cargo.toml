@@ -1,0 +1,21 @@
+[package]
+name = "pipeline-macro"
+version = "0.6.0"
+authors = ["Johann Hofmann <mail@johann-hofmann.com>", "piegames <git@piegames.de>"]
+license = "MIT OR Apache-2.0"
+description = "Procedural macros for the pipeline crate"
+edition = "2018"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+proc-macro2 = "1.0.9"
+quote = "1.0.3"
+syn = { version = "1.0.17", features = ["extra-traits", "full"] }
+proc-macro-hack = { version = "0.5.15", optional = true }
+
+[features]
+default = ["proc-macro-hack"]
+nightly = ["unstable"]
+unstable = []

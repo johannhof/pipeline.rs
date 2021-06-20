@@ -1,9 +1,22 @@
 [package]
 name = "pipeline"
-version = "0.5.0"
+version = "0.6.0"
 authors = ["Johann Hofmann <mail@johann-hofmann.com>"]
 description = "A macro collection to pipe |> your functions calls, like in F# or Elixir."
 repository = "https://github.com/johannhof/pipeline.rs"
 readme = "README.md"
 keywords = ["pipe", "function", "elixir", "macro", "composition"]
 license = "MIT OR Apache-2.0"
+edition = "2018"
+
+[dependencies]
+proc-macro-hack = { version = "0.5.15", optional = true }
+pipeline-macro = { path = "macro", version = "0.6.0" }
+
+[dev-dependencies]
+anyhow = "1.0.28"
+
+[features]
+default = ["proc-macro-hack"]
+nightly = ["pipeline-macro/nightly", "unstable"]
+unstable = []

@@ -33,7 +33,7 @@ macro_rules! pipe {
         {
             let ret = $expr;
             $(
-                let ret = pipe_fun!($funs, ret);
+                let ret = $crate::pipe_fun!($funs, ret);
             )*
             ret
         }
@@ -47,7 +47,7 @@ macro_rules! pipe_res {
             let ret = Ok($expr);
             $(
                 let ret = match ret {
-                    Ok(x) => pipe_fun!($funs, x),
+                    Ok(x) => $crate::pipe_fun!($funs, x),
                     _ => ret
                 };
             )*
@@ -63,7 +63,7 @@ macro_rules! pipe_opt {
             let ret = None;
             $(
                 let ret = match ret {
-                    None => pipe_fun!($funs, $expr),
+                    None => $crate::pipe_fun!($funs, $expr),
                     _ => ret
                 };
             )*
